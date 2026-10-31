@@ -94,7 +94,7 @@ do {
         for p in try DiskTools.listEFIPartitions() {
             print(pad(p.id, 10) + pad(p.volumeName, 12) + pad(p.isMounted ? (p.mountPoint ?? "") : "not mounted", 24)
                   + pad(ByteCountFormatter.string(fromByteCount: p.size, countStyle: .file), 12) + p.diskName
-                  + (p.isRemovable ? " (removable)" : "") + (p.isInternal ? " (internal)" : " (external)"))
+                  + (p.isRemovable ? " (removable)" : "") + (p.isInternal ? " (internal)" : " (external)") + "  uuid=" + (p.partitionUUID ?? "?"))
         }
     case "fix-config":
         guard args.count == 2 else { usage() }

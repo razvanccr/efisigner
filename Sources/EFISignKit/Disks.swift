@@ -9,6 +9,7 @@ public struct EFIPartition: Identifiable, Hashable {
     public let diskName: String
     public let isInternal: Bool
     public let isRemovable: Bool
+    public let partitionUUID: String?
     public var isMounted: Bool { mountPoint != nil }
 }
 
@@ -65,7 +66,8 @@ public enum DiskTools {
                     volumeName: (p["VolumeName"] as? String).flatMap { $0.isEmpty ? nil : $0 } ?? "EFI",
                     mountPoint: mp,
                     size: (p["Size"] as? Int64) ?? Int64((p["Size"] as? Int) ?? 0),
-                    diskID: diskID, diskName: diskName, isInternal: isInternal, isRemovable: isRemovable))
+                    diskID: diskID, diskName: diskName, isInternal: isInternal, isRemovable: isRemovable,
+                    partitionUUID: (info["DiskUUID"] as? String) ?? (info["VolumeUUID"] as? String)))
             }
         }
         return out

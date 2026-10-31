@@ -94,15 +94,32 @@ public final class KeyStore {
         return out
     }
 
-    /// Existing backup folders for this partition, oldest first.
+    static let markerName = "partition-uuid.txt"
+
+    /// Existing backup folders for this partition, oldest first. Matched by partition UUID
+    /// (survives a USB stick coming back as a different diskN) or, for older folders, by device id.
     public func backupFolders(for partition: EFIPartition) -> [URL] {
-        let names = (try? FileManager.default.contentsOfDirectory(atPath: backupsURL.path)) ?? []
-        return names.filter { $0.contains(" \(partition.id) ") }.sorted().map { backupsURL.appendingPathComponent($0) }
+        let names = ((try? FileManager.default.contentsOfDirectory(atPath: backupsURL.path)) ?? []).sorted()
+        return names.compactMap { name -> URL? in
+            let url = backupsURL.appendingPathComponent(name)
+            if let uuid = partition.partitionUUID,
+               let marker = try? String(contentsOf: url.appendingPathComponent(KeyStore.markerName), encoding: .utf8),
+               marker.trimmingCharacters(in: .whitespacesAndNewlines).caseInsensitiveCompare(uuid) == .orderedSame {
+                return url
+            }
+            return name.contains(" \(partition.id) ") ? url : nil
+        }
     }
 
+    /// Folder to write new backups into for this partition (today's, created on demand with a UUID marker).
     public func backupFolder(for partition: EFIPartition) -> URL {
         let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"
         let name = "\(f.string(from: Date())) \(partition.id) \(partition.volumeName)".replacingOccurrences(of: "/", with: "-")
-        return backupsURL.appendingPathComponent(name)
+        let url = backupsURL.appendingPathComponent(name)
+        try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        if let uuid = partition.partitionUUID {
+            try? uuid.write(to: url.appendingPathComponent(KeyStore.markerName), atomically: true, encoding: .utf8)
+        }
+        return url
     }
 }

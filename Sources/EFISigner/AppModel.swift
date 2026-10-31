@@ -165,6 +165,15 @@ final class AppModel: ObservableObject {
     }
 
     var backupFoldersForSelection: [URL] { selectedPartition.map { keyStore.backupFolders(for: $0) } ?? [] }
+
+    func hasBackup(_ e: EFIFileEntry) -> Bool {
+        backupFoldersForSelection.contains { FileManager.default.fileExists(atPath: $0.appendingPathComponent(e.relativePath).path) }
+    }
+    /// Files Revert can act on: anything we kept a backup of, plus anything carrying our or a broken signature.
+    func isRevertable(_ e: EFIFileEntry) -> Bool {
+        e.verdict == .signedByUs || e.verdict == .signedInvalid || (e.verdict == .signedOther && hasBackup(e))
+    }
+    var revertable: [EFIFileEntry] { entries.filter(isRevertable) }
     var hasConfigBackup: Bool { !RestoreService.configBackups(in: backupFoldersForSelection).isEmpty }
 
     /// Restores files from their backups (or strips the signature when no backup exists).

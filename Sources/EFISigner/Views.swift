@@ -31,7 +31,7 @@ struct ContentView: View {
             Button("Revert") { model.revert(pendingRevert) }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Each file is put back from the backup made when it was first signed. If no backup exists, its signature is removed instead. Files that only have a signature from someone else's key are left as they are.")
+            Text("Each file is put back from the backup made when it was first signed. If no backup exists, its signature is removed instead. Files signed by another key are only reverted when a backup of them exists, so Microsoft's loaders are never touched.")
         }
         .confirmationDialog("Restore the original config.plist?", isPresented: $confirmRestoreConfig, titleVisibility: .visible) {
             Button("Restore") { model.restoreConfig() }
@@ -74,10 +74,10 @@ struct ContentView: View {
                 .disabled(model.signable.isEmpty || model.busy)
                 .help("Re-sign every loadable EFI file with your key, including Windows and other loaders")
             Menu {
-                Button("Revert selected files") { pendingRevert = model.selectedEntries.filter { $0.verdict == .signedByUs || $0.verdict == .signedInvalid }; confirmRevert = true }
-                    .disabled(model.selectedEntries.isEmpty)
-                Button("Revert all files signed with your key") { pendingRevert = model.signedByUs; confirmRevert = true }
-                    .disabled(model.signedByUs.isEmpty)
+                Button("Revert selected files") { pendingRevert = model.selectedEntries.filter(model.isRevertable); confirmRevert = true }
+                    .disabled(!model.selectedEntries.contains(where: model.isRevertable))
+                Button("Revert all signed files (\(model.revertable.count))") { pendingRevert = model.revertable; confirmRevert = true }
+                    .disabled(model.revertable.isEmpty)
                 Divider()
                 Button("Restore original config.plist…") { confirmRestoreConfig = true }
                     .disabled(!model.hasConfigBackup)
