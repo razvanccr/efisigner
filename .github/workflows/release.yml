@@ -30,4 +30,4 @@ jobs:
         run: |
           gh release create "$GITHUB_REF_NAME" dist/* \
             --title "EFI Signer $GITHUB_REF_NAME" \
-            --notes "Unzip, then run: xattr -d com.apple.quarantine \"EFI Signer.app\" (the app is ad-hoc signed, not notarized). See the README for usage."
+            --notes "Unzip, then run: xattr -d com.apple.quarantine \"EFI Signer.app\" (the app is ad-hoc signed, not notarized). Universal binary (Intel and Apple Silicon). See the README for usage."

@@ -17,8 +17,9 @@ page, unzip, and remove the quarantine flag once (the app is ad-hoc signed, not 
 xattr -d com.apple.quarantine "EFI Signer.app"
 ```
 
-Each release also ships `efisign`, the command-line twin. Releases are built on GitHub's macOS
-runner from the tagged source by the workflow in `.github/workflows/release.yml`.
+Releases are built on GitHub's macOS runner from the tagged source by the workflow in
+`.github/workflows/release.yml`. The command-line twin, `efisign`, is not part of the release;
+build it from source with `swift build --product efisign` if you want it.
 
 ## Why
 
