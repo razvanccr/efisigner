@@ -2,7 +2,10 @@
 # Builds EFISigner with SwiftPM and wraps it into build/EFI Signer.app
 set -eu
 cd "${0:A:h}/.."
-swift build -c release --product EFISigner
+# Universal (Intel + Apple Silicon) release build
+ARCHS=(--arch arm64 --arch x86_64)
+swift build -c release "${ARCHS[@]}" --product EFISigner
+BIN="$(swift build -c release "${ARCHS[@]}" --product EFISigner --show-bin-path)/EFISigner"
 APP="build/EFI Signer.app"
 # never replace the bundle under a running instance
 if pgrep -x EFISigner >/dev/null; then
@@ -12,7 +15,8 @@ if pgrep -x EFISigner >/dev/null; then
 fi
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
-cp .build/release/EFISigner "$APP/Contents/MacOS/EFISigner"
+cp "$BIN" "$APP/Contents/MacOS/EFISigner"
+lipo -archs "$APP/Contents/MacOS/EFISigner" | grep -q x86_64 || { echo "not universal"; exit 1; }
 cp scripts/Info.plist "$APP/Contents/Info.plist"
 [[ -f scripts/AppIcon.icns ]] && cp scripts/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns" && /usr/libexec/PlistBuddy -c "Add :CFBundleIconFile string AppIcon" "$APP/Contents/Info.plist"
 codesign --force --sign - "$APP" >/dev/null
