@@ -4,6 +4,10 @@ Keep UEFI Secure Boot **on** with OpenCore. EFI Signer finds every EFI partition
 shows which `.efi` files the firmware would reject, and signs them with your own key.
 Enrol the matching certificate in the BIOS once and the Hackintosh boots with Secure Boot enabled.
 
+| Before | After |
+|---|---|
+| ![Unsigned OpenCore on an installer stick](docs/before.png) | ![Everything signed, ready for Secure Boot](docs/after.png) |
+
 ## Why
 
 OpenCore, its drivers and tools ship unsigned, so a PC with Secure Boot enabled refuses to load
