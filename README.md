@@ -8,6 +8,18 @@ Enrol the matching certificate in the BIOS once and the Hackintosh boots with Se
 |---|---|
 | ![Unsigned OpenCore on an installer stick](docs/before.png) | ![Everything signed, ready for Secure Boot](docs/after.png) |
 
+## Download
+
+Grab `EFI-Signer-<version>.zip` from the [Releases](https://github.com/razvanccr/efisigner/releases)
+page, unzip, and remove the quarantine flag once (the app is ad-hoc signed, not notarized):
+
+```bash
+xattr -d com.apple.quarantine "EFI Signer.app"
+```
+
+Each release also ships `efisign`, the command-line twin. Releases are built on GitHub's macOS
+runner from the tagged source by the workflow in `.github/workflows/release.yml`.
+
 ## Why
 
 OpenCore, its drivers and tools ship unsigned, so a PC with Secure Boot enabled refuses to load

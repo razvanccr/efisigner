@@ -1,0 +1,33 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and package
+        run: ./scripts/package.sh "${GITHUB_REF_NAME#v}"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: EFI-Signer
+          path: dist/*
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --title "EFI Signer $GITHUB_REF_NAME" \
+            --notes "Unzip, then run: xattr -d com.apple.quarantine \"EFI Signer.app\" (the app is ad-hoc signed, not notarized). See the README for usage."
