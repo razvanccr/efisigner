@@ -23,6 +23,15 @@ the firmware trusts any certificate in its `db`, including one you made.
    Custom / Key Management → **db → Append** `db.cer`. Keep Microsoft's entries (they sign your
    GPU's option ROM and Windows). Enable Secure Boot, reboot.
 
+Official vendor pages for the key menu (always under Secure Boot; it unlocks in *Custom* mode):
+[ASUS](https://www.asus.com/support/faq/1049829/) ·
+[ASRock](https://www.asrock.com/support/faq.asp?id=531) ·
+[Gigabyte](https://www.gigabyte.com/Support/Consumer/Faq/4395) ·
+[MSI (BIOS guide, PDF)](https://download-2.msi.com/archive/mnu_exe/mb/AMDAM5BIOS.pdf) ·
+[Dell](https://www.dell.com/support/kbdoc/en-us/000368610/how-to-update-secure-boot-active-database-from-bios) ·
+[Lenovo](https://pubs.lenovo.com/uefi_edge_v2/secure_boot_custom_policy) ·
+[HP business PCs (PDF)](https://ftp.hp.com/pub/caps-softpaq/cmit/whitepapers/HPBIOSSetup.pdf)
+
 After an OpenCore update, press **Sign needed** again. Other disks and installer sticks signed
 with the same key boot too; no BIOS visit needed. The header always tells you the next step,
 and the built-in guide (toolbar book icon, ⌘?) has the details.
