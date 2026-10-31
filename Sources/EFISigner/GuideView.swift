@@ -66,7 +66,7 @@ enum Guide {
         GuideSection(title: "If a boot fails under Secure Boot", icon: "exclamationmark.triangle", intro: nil, steps: [
             "Switch Secure Boot off in the BIOS and boot macOS. Windows keeps booting either way, since it has its own Microsoft-signed loader.",
             "Open EFI Signer and look for red rows or config warnings on the boot disk's EFI partition.",
-            "The Backups folder holds every original file if you need to put one back.",
+            "Toolbar → Revert puts files back from the backup made when they were signed (or strips the signature if there is no backup), and can restore config.plist to the copy saved before the first Fix…. The Backups folder in Application Support holds the same files if you prefer to copy them by hand.",
             "The firmware usually names the file it refused on screen; that is the one to check first.",
         ]),
         GuideSection(title: "Where things are stored", icon: "folder", intro:

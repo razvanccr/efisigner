@@ -94,6 +94,12 @@ public final class KeyStore {
         return out
     }
 
+    /// Existing backup folders for this partition, oldest first.
+    public func backupFolders(for partition: EFIPartition) -> [URL] {
+        let names = (try? FileManager.default.contentsOfDirectory(atPath: backupsURL.path)) ?? []
+        return names.filter { $0.contains(" \(partition.id) ") }.sorted().map { backupsURL.appendingPathComponent($0) }
+    }
+
     public func backupFolder(for partition: EFIPartition) -> URL {
         let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"
         let name = "\(f.string(from: Date())) \(partition.id) \(partition.volumeName)".replacingOccurrences(of: "/", with: "-")

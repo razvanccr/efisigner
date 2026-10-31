@@ -18,7 +18,8 @@ the firmware trusts any certificate in its `db`, including one you made.
 3. **Fix any config.plist warning** with its **Fix…** button. `SecureBootModel` must not be
    `Disabled`, otherwise OpenCore hands Apple's `boot.efi` to the firmware, which cannot verify it.
 4. **Sign needed.** Every file the firmware would reject is signed in place; originals are kept
-   in `~/Library/Application Support/EFI Signer/Backups`.
+   in `~/Library/Application Support/EFI Signer/Backups`. **Revert** in the toolbar puts them
+   back (and restores config.plist to the copy saved before a Fix…).
 5. **Key → Export certificate for BIOS** onto a FAT32 USB stick, then in the BIOS: Secure Boot →
    Custom / Key Management → **db → Append** `db.cer`. Keep Microsoft's entries (they sign your
    GPU's option ROM and Windows). Enable Secure Boot, reboot.

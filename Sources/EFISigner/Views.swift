@@ -8,6 +8,9 @@ struct ContentView: View {
     @State private var showGenerate = false
     @State private var pendingSign: [EFIFileEntry] = []
     @State private var confirmSign = false
+    @State private var pendingRevert: [EFIFileEntry] = []
+    @State private var confirmRevert = false
+    @State private var confirmRestoreConfig = false
 
     var body: some View {
         NavigationSplitView {
@@ -23,6 +26,18 @@ struct ContentView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("A copy of each original is kept in \(model.keyStore.backupsURL.path). Files already signed with another key are re-signed with yours.")
+        }
+        .confirmationDialog("Revert \(pendingRevert.count) file(s)?", isPresented: $confirmRevert, titleVisibility: .visible) {
+            Button("Revert") { model.revert(pendingRevert) }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Each file is put back from the backup made when it was first signed. If no backup exists, its signature is removed instead. Files that only have a signature from someone else's key are left as they are.")
+        }
+        .confirmationDialog("Restore the original config.plist?", isPresented: $confirmRestoreConfig, titleVisibility: .visible) {
+            Button("Restore") { model.restoreConfig() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Puts back the copy saved before the first Fix… was applied. The current config.plist is saved in the Backups folder first.")
         }
         .alert("EFI Signer", isPresented: Binding(get: { model.errorMessage != nil }, set: { if !$0 { model.errorMessage = nil } })) {
             Button("OK") {}
@@ -58,6 +73,17 @@ struct ContentView: View {
             } label: { Label("Re-sign all", systemImage: "arrow.triangle.2.circlepath") }
                 .disabled(model.signable.isEmpty || model.busy)
                 .help("Re-sign every loadable EFI file with your key, including Windows and other loaders")
+            Menu {
+                Button("Revert selected files") { pendingRevert = model.selectedEntries.filter { $0.verdict == .signedByUs || $0.verdict == .signedInvalid }; confirmRevert = true }
+                    .disabled(model.selectedEntries.isEmpty)
+                Button("Revert all files signed with your key") { pendingRevert = model.signedByUs; confirmRevert = true }
+                    .disabled(model.signedByUs.isEmpty)
+                Divider()
+                Button("Restore original config.plist…") { confirmRestoreConfig = true }
+                    .disabled(!model.hasConfigBackup)
+            } label: { Label("Revert", systemImage: "arrow.uturn.backward") }
+                .disabled(model.busy || model.selectedPartition?.isMounted != true)
+                .help("Put files or config.plist back the way they were before signing")
             Divider()
             Menu {
                 Button("Generate new key…") { showGenerate = true }

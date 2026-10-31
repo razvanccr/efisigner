@@ -11,6 +11,8 @@ func usage() -> Never {
       efisign scan [mountpoint] [--cert db.crt]
       efisign firmware
       efisign disks
+      efisign strip <file.efi>...        (remove the signature in place)
+      efisign revert --backups <folder> <mountpoint> [relative/path.efi ...]   (restore from backups, else strip)
       efisign fix-config <mountpoint> secure-boot-model|security-policy|disable-tool:<name>
     """)
     exit(2)
@@ -73,6 +75,20 @@ do {
             for e in entries {
                 print("   " + pad(e.relativePath, 34) + pad(e.verdict.rawValue, 28) + pad(e.role.rawValue, 24) + e.signerDescription)
             }
+        }
+    case "strip":
+        for f in args {
+            var pe = try PEImage(data: Data(contentsOf: URL(fileURLWithPath: f)))
+            if pe.stripSignature() { pe.updateChecksum(); try pe.data.write(to: URL(fileURLWithPath: f), options: .atomic); print("stripped \(f)") }
+            else { print("\(f): no signature") }
+        }
+    case "revert":
+        guard let backups = option("--backups"), let mp = args.first else { usage() }
+        let (entries, _) = Scanner.scan(mountPoint: mp, trustedCertificateDER: nil)
+        let wanted = Set(args.dropFirst().map { $0.lowercased() })
+        for e in entries where wanted.isEmpty || wanted.contains(e.relativePath.lowercased()) {
+            let o = RestoreService.revert(e, backupFolders: [URL(fileURLWithPath: backups)])
+            print(o.error.map { "FAILED \(e.relativePath): \($0)" } ?? "reverted \(e.relativePath): \(o.method ?? "")")
         }
     case "disks":
         for p in try DiskTools.listEFIPartitions() {

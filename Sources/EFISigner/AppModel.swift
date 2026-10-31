@@ -164,6 +164,41 @@ final class AppModel: ObservableObject {
         }
     }
 
+    var backupFoldersForSelection: [URL] { selectedPartition.map { keyStore.backupFolders(for: $0) } ?? [] }
+    var hasConfigBackup: Bool { !RestoreService.configBackups(in: backupFoldersForSelection).isEmpty }
+
+    /// Restores files from their backups (or strips the signature when no backup exists).
+    func revert(_ list: [EFIFileEntry]) {
+        guard let p = selectedPartition, !list.isEmpty else { return }
+        busy = true; statusText = "Reverting \(list.count) file(s)…"
+        let folders = keyStore.backupFolders(for: p)
+        Task {
+            let outcomes = await Task.detached { list.map { RestoreService.revert($0, backupFolders: folders) } }.value
+            for o in outcomes {
+                if let e = o.error { appendLog("FAILED \(o.entry.relativePath): \(e)") }
+                else { appendLog("Reverted \(o.entry.relativePath): \(o.method ?? "")") }
+            }
+            let failed = outcomes.filter { $0.error != nil }.count
+            if failed > 0 { errorMessage = "\(failed) file(s) could not be reverted. See the log." }
+            await rescan()
+        }
+    }
+
+    func restoreConfig() {
+        guard let p = selectedPartition, let mp = p.mountPoint else { return }
+        busy = true; statusText = "Restoring config.plist…"
+        let folders = keyStore.backupFolders(for: p)
+        Task {
+            do {
+                let name = try await Task.detached { try RestoreService.restoreConfig(espRoot: URL(fileURLWithPath: mp), backupFolders: folders) }.value
+                appendLog("config.plist restored from \(name)")
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+            await rescan()
+        }
+    }
+
     func generateKey(commonName: String, years: Int) {
         busy = true; statusText = "Generating RSA key…"
         let store = keyStore
